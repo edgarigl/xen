@@ -23,6 +23,7 @@ int make_memory_node(const struct kernel_info *kinfo, int addrcells,
 int make_psci_node(void *fdt);
 int make_timer_node(const struct kernel_info *kinfo);
 void evtchn_allocate(struct domain *d);
+void find_gnttab_region(struct domain *d, struct kernel_info *kinfo);
 
 unsigned int get_allocation_size(paddr_t size);
 

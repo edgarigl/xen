@@ -744,8 +744,6 @@ static int __init prepare_dtb_domU(struct domain *d, struct kernel_info *kinfo)
     int ret, fdt_size = DOMU_DTB_SIZE;
 
     kinfo->phandle_gic = GUEST_PHANDLE_GIC;
-    kinfo->gnttab_start = GUEST_GNTTAB_BASE;
-    kinfo->gnttab_size = GUEST_GNTTAB_SIZE;
 
     addrcells = GUEST_ROOT_ADDRESS_CELLS;
     sizecells = GUEST_ROOT_SIZE_CELLS;
@@ -1074,6 +1072,8 @@ static int __init construct_domU(struct domain *d,
         allocate_static_memory(d, &kinfo, node);
     else
         assign_static_memory_11(d, &kinfo, node);
+
+    find_gnttab_region(d, &kinfo);
 
     rc = process_shm(d, &kinfo, node);
     if ( rc < 0 )

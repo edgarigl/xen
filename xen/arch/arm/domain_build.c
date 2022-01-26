@@ -2151,8 +2151,7 @@ void __init evtchn_allocate(struct domain *d)
     d->arch.hvm.params[HVM_PARAM_CALLBACK_IRQ] = val;
 }
 
-static void __init find_gnttab_region(struct domain *d,
-                                      struct kernel_info *kinfo)
+void __init find_gnttab_region(struct domain *d, struct kernel_info *kinfo)
 {
     /*
      * The region used by Xen on the memory will never be mapped in DOM0
@@ -2161,8 +2160,16 @@ static void __init find_gnttab_region(struct domain *d,
      * Only use the text section as it's always present and will contain
      * enough space for a large grant table
      */
-    kinfo->gnttab_start = __pa(_stext);
-    kinfo->gnttab_size = gnttab_dom0_frames() << PAGE_SHIFT;
+    if ( domain_use_host_layout(d) )
+    {
+        kinfo->gnttab_start = __pa(_stext);
+        kinfo->gnttab_size = gnttab_dom0_frames() << PAGE_SHIFT;
+    }
+    else
+    {
+        kinfo->gnttab_start = GUEST_GNTTAB_BASE;
+        kinfo->gnttab_size = GUEST_GNTTAB_SIZE;
+    }
 
 #ifdef CONFIG_ARM_32
     /*
