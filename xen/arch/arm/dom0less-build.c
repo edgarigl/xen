@@ -19,6 +19,7 @@
 #include <asm/domain_build.h>
 #include <asm/static-memory.h>
 #include <asm/static-shmem.h>
+#include <asm/viommu.h>
 
 bool __init is_dom0less_mode(void)
 {
@@ -1219,6 +1220,7 @@ void __init create_domUs(void)
         struct domain *d;
         struct xen_domctl_createdomain d_cfg = {
             .arch.gic_version = XEN_DOMCTL_CONFIG_GIC_NATIVE,
+            .arch.viommu_type = viommu_get_type(),
             .flags = XEN_DOMCTL_CDF_hvm | XEN_DOMCTL_CDF_hap,
             /*
              * The default of 1023 should be sufficient for guests because
