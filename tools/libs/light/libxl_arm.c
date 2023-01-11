@@ -104,6 +104,18 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
         }
     }
 
+    for (i = 0; i < d_config->num_nics; i++) {
+        libxl_device_nic *nic = &d_config->nics[i];
+
+        if (nic->model != NULL && !strcmp(nic->model, "virtio-net")) {
+            rc = alloc_virtio_mmio_params(gc, &nic->base, &nic->irq,
+                                          &virtio_mmio_base, &virtio_mmio_irq);
+
+            if (rc)
+                return rc;
+        }
+    }
+
     for (i = 0; i < d_config->num_virtios; i++) {
         libxl_device_virtio *virtio = &d_config->virtios[i];
 
@@ -1367,6 +1379,19 @@ next_resize:
                 FDT( make_virtio_mmio_node(gc, fdt, disk->base, disk->irq,
                                            disk->backend_domid,
                                            libxl_defbool_val(disk->grant_usage)) );
+            }
+        }
+
+        for (i = 0; i < d_config->num_nics; i++) {
+            libxl_device_nic *nic = &d_config->nics[i];
+
+            if (nic->model != NULL && !strcmp(nic->model, "virtio-net")) {
+                if (nic->backend_domid != LIBXL_TOOLSTACK_DOMID)
+                    iommu_needed = true;
+
+                FDT( make_virtio_mmio_node(gc, fdt, nic->base, nic->irq,
+                                           nic->backend_domid,
+                                           nic->backend_domid != LIBXL_TOOLSTACK_DOMID) );
             }
         }
 
