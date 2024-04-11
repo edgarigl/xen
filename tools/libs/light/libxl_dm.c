@@ -1583,9 +1583,12 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
 
                 /* assume PVH uses virtio-mmio for now */
                 if (b_info->type == LIBXL_DOMAIN_TYPE_PVH &&
-                    nics[i].model != NULL && !strcmp(nics[i].model, "virtio-net"))
+                    nics[i].model != NULL && !strcmp(nics[i].model, "virtio-net")) {
+                    /* FIXME: We shouldn't assume this is virtio-mmio.  */
                     model = "virtio-net-device";
-                else
+                    flexarray_append(dm_args, "-global");
+                    flexarray_append(dm_args, "virtio-mmio.force-legacy=false");
+                } else
                     model = nics[i].model;
 
                 flexarray_append(dm_args, "-device");
@@ -1989,6 +1992,8 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
                     flexarray_append(dm_args, "-drive");
                     flexarray_append(dm_args, GCSPRINTF("if=none,id=image,format=%s,"
                                 "file=%s", format, disks[i].pdev_path));
+                    flexarray_append(dm_args, "-global");
+                    flexarray_append(dm_args, "virtio-mmio.force-legacy=false");
                     continue;
                 } else if (b_info->type == LIBXL_DOMAIN_TYPE_HVM &&
                     b_info->u.hvm.hdtype == LIBXL_HDTYPE_AHCI) {
