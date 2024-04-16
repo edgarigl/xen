@@ -101,7 +101,6 @@ static int libxl__device_nic_setdefault(libxl__gc *gc, uint32_t domid,
                 nic->nictype = LIBXL_NIC_TYPE_VIF_IOEMU;
         }
         break;
-    case LIBXL_DOMAIN_TYPE_PVH:
     case LIBXL_DOMAIN_TYPE_PV:
         if (nic->nictype == LIBXL_NIC_TYPE_VIF_IOEMU) {
             LOGD(ERROR, domid,
@@ -109,6 +108,10 @@ static int libxl__device_nic_setdefault(libxl__gc *gc, uint32_t domid,
             return ERROR_INVAL;
         }
         nic->nictype = LIBXL_NIC_TYPE_VIF;
+        break;
+    case LIBXL_DOMAIN_TYPE_PVH:
+        if (!nic->nictype)
+            nic->nictype = LIBXL_NIC_TYPE_VIF;
         break;
     case LIBXL_DOMAIN_TYPE_INVALID:
         return ERROR_FAIL;

@@ -93,6 +93,7 @@ void libxl__arch_update_domain_config(libxl__gc *gc,
 
 #if defined(__i386__) || defined(__x86_64__)
 
+#define IOAPIC_BASE_ADDRESS 0xfec00000
 #define LAPIC_BASE_ADDRESS  0xfee00000
 #define ACPI_INFO_PHYSICAL_ADDRESS 0xfc000000
 #define EXTRA_DEFAULT_PAGING_MEM_MB 0

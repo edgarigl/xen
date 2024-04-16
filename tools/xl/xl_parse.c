@@ -2014,6 +2014,18 @@ void parse_config_data(const char *config_source,
 
         break;
     case LIBXL_DOMAIN_TYPE_PVH:
+        if (!xlu_cfg_get_long(config, "mmio_hole", &l, 0)) {
+            uint64_t mmio_hole_size;
+
+            b_info->u.hvm.mmio_hole_memkb = l * 1024;
+            mmio_hole_size = b_info->u.hvm.mmio_hole_memkb * 1024;
+            if (mmio_hole_size < HVM_BELOW_4G_MMIO_LENGTH ||
+                mmio_hole_size > HVM_BELOW_4G_MMIO_START) {
+                fprintf(stderr,
+                        "ERROR: invalid value %ld for \"mmio_hole\"\n", l);
+                exit (1);
+            }
+        }
     case LIBXL_DOMAIN_TYPE_PV:
     {
         /*

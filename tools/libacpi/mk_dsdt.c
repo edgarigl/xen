@@ -101,6 +101,89 @@ static struct option options[] = {
     { 0, 0, 0, 0 }
 };
 
+static void add_pci_block(unsigned int seg, unsigned int nr_bus,
+          unsigned long ecam_base, unsigned long ecam_size,
+          unsigned long mmio32_base, unsigned long mmio32_size,
+          unsigned long long mmio64_base, unsigned long long mmio64_size,
+          unsigned int gsi_base)
+{
+    unsigned int link, dev;
+
+    push_block("Device", "RES0");
+    stmt("Name", "_HID, EISAID(\"PNP0C02\")");
+    stmt("Name", "_CRS, ResourceTemplate() {"
+         "QWordMemory(ResourceProducer,"
+         "PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,"
+         "0x00000000,"
+         "0x%08lx,"
+         "0x%08lx,"
+         "0x00000000,"
+         "0x%08lx)"
+         "}", ecam_base, ecam_base + ecam_size - 1, ecam_size);
+    pop_block();
+
+    push_block("Device", "PCI%u", seg);
+    stmt("Name", "_HID, EISAID(\"PNP0A08\")"); // _HID: Hardware ID
+    stmt("Name", "_CID, EISAID(\"PNP0A03\")"); // _CID: Compatible ID
+    stmt("Name", "_SEG, %d", seg); // _SEG: PCI Segment
+    stmt("Name", "_BBN, 0"); // _BBN: BIOS Bus Number
+    stmt("Name", "_STR, UNICODE(\"PCIe %d Device\")", seg);
+    stmt("Name", "_CCA, 1"); // _CCA: Cache Coherency Attribute
+
+    push_block("Method", "_CBA, 0, NotSerialized"); // _CBA: Config Base Address
+    stmt("Return", "(0x%08lx)", ecam_base);
+    pop_block();
+
+    stmt("Name", "_CRS, ResourceTemplate() {"// _CRS: Current Resource Settings
+         "WordBusNumber (ResourceProducer,"
+         "MinFixed, MaxFixed, PosDecode,"
+         "0x0000," // Granularity
+         "0x0000," // Range Minimum
+         "0x%04x," // Range Maximum
+         "0x0000," // Translation Offset
+         "0x%04x)"  // Length
+         "DWordMemory (ResourceProducer,"
+         "PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,"
+         "0x00000000,"
+         "0x%08lx,"
+         "0x%08lx,"
+         "0x00000000,"
+         "0x%08lx)"
+         "QWordMemory (ResourceProducer,"
+         "PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,"
+         "0x0000000000000000,"
+         "0x%016llx,"
+         "0x%016llx,"
+         "0x0000000000000000,"
+         "0x%016llx)"
+         "}", nr_bus - 1, nr_bus, mmio32_base, mmio32_base + mmio32_size - 1,
+         mmio32_size, mmio64_base, mmio64_base + mmio64_size - 1, mmio64_size);
+
+    printf("Name(_PRT, Package() {\n"); // _PRT: PCI Routing Table
+    for ( dev = 1; dev < 32; dev++ )
+        for (link = 0; link < 4; link++)
+            printf("Package(){0x%04xFFFF, %u, GSI%u, 0},\n",
+                   dev, link, (dev + link) & 3);
+    printf("})\n");
+
+    for (link = 0; link < 4; link++) {
+        unsigned int gsi = gsi_base + link;
+        push_block("Device", "GSI%u", link);
+        stmt("Name", "_HID, EISAID(\"PNP0C0F\")");
+        stmt("Name", "_UID, %u", link);
+        stmt("Name", "_PRS, ResourceTemplate() {"
+             "Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive)"
+             "{ %u } }", gsi);
+        stmt("Name", "_CRS, ResourceTemplate() {"
+             "Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive)"
+             "{ %u } }", gsi);
+        push_block("Method", "_SRS, 1, NotSerialized");
+        pop_block();
+        pop_block();
+    }
+    pop_block();
+}
+
 int main(int argc, char **argv)
 {
     unsigned int cpu, max_cpus;
@@ -286,6 +369,8 @@ int main(int argc, char **argv)
     pop_block();
 
     if (dm_version == QEMU_NONE) {
+        add_pci_block(0, 256, 0xE0000000, 256 * 0x100000,
+                      0xC0000000, 0x20000000, 0xC000000000, 0x4000000000, 16);
         pop_block();
         return 0;
     }

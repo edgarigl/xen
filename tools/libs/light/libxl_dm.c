@@ -931,6 +931,8 @@ static int libxl__build_device_model_args_old(libxl__gc *gc,
     flexarray_append(dm_args, "-M");
     switch (b_info->type) {
     case LIBXL_DOMAIN_TYPE_PVH:
+        flexarray_append(dm_args, "xenpvh");
+        break;
     case LIBXL_DOMAIN_TYPE_PV:
         flexarray_append(dm_args, "xenpv");
         for (i = 0; b_info->extra_pv && b_info->extra_pv[i] != NULL; i++)
@@ -1359,6 +1361,53 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
 
     if (keymap) {
         flexarray_vappend(dm_args, "-k", keymap, NULL);
+    }
+
+    if (b_info->type == LIBXL_DOMAIN_TYPE_PVH) {
+        int ioemu_nics = 0;
+        for (i = 0; i < num_nics; i++) {
+            if (nics[i].nictype == LIBXL_NIC_TYPE_VIF_IOEMU) {
+                char *smac = GCSPRINTF(LIBXL_MAC_FMT,
+                                       LIBXL_MAC_BYTES(nics[i].mac));
+                const char *ifname = libxl__device_nic_devname(gc,
+                                                guest_domid, nics[i].devid,
+                                                LIBXL_NIC_TYPE_VIF_IOEMU);
+                flexarray_append(dm_args, "-device");
+                flexarray_append(dm_args,
+                   GCSPRINTF("%s,id=nic%d,netdev=net%d,mac=%s",
+                             nics[i].model, nics[i].devid,
+                             nics[i].devid, smac));
+                flexarray_append(dm_args, "-netdev");
+                flexarray_append(dm_args,
+                                 GCSPRINTF("type=tap,id=net%d,ifname=%s,"
+                                           "br=%s,"
+                                           "script=%s,downscript=%s",
+                                           nics[i].devid, ifname,
+                                           nics[i].bridge,
+                                           libxl_tapif_script(gc),
+                                           libxl_tapif_script(gc)));
+            }
+            ioemu_nics++;
+        }
+        /* If we have no emulated nics, tell qemu not to create any */
+        if ( ioemu_nics == 0 ) {
+            flexarray_append(dm_args, "-net");
+            flexarray_append(dm_args, "none");
+        }
+
+        if (b_info->max_vcpus > 1) {
+            flexarray_append(dm_args, "-smp");
+            if (b_info->avail_vcpus.size) {
+                int nr_set_cpus = 0;
+                nr_set_cpus = libxl_bitmap_count_set(&b_info->avail_vcpus);
+
+                flexarray_append(dm_args, GCSPRINTF("%d,maxcpus=%d",
+                                                    nr_set_cpus,
+                                                    b_info->max_vcpus));
+            } else
+                flexarray_append(dm_args, GCSPRINTF("%d", b_info->max_vcpus));
+        }
+
     }
 
     if (b_info->type == LIBXL_DOMAIN_TYPE_HVM) {
@@ -1803,6 +1852,8 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     flexarray_append(dm_args, "-machine");
     switch (b_info->type) {
     case LIBXL_DOMAIN_TYPE_PVH:
+        flexarray_append(dm_args, "xenpvh");
+        break;
     case LIBXL_DOMAIN_TYPE_PV:
         flexarray_append(dm_args, "xenpv");
         for (i = 0; b_info->extra_pv && b_info->extra_pv[i] != NULL; i++)
