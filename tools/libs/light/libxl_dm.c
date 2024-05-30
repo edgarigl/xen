@@ -3827,6 +3827,22 @@ int libxl__need_xenpv_qemu(libxl__gc *gc, libxl_domain_config *d_config)
         goto out;
     }
 
+    for (i = 0; i < d_config->num_disks; i++) {
+        libxl_device_disk *disk = &d_config->disks[i];
+        if (disk->specification == LIBXL_DISK_SPECIFICATION_VIRTIO) {
+            ret = 1;
+            goto out;
+        }
+    }
+
+    for (i = 0; i < d_config->num_nics; i++) {
+        libxl_device_nic *nic = &d_config->nics[i];
+        if (nic->nictype == LIBXL_NIC_TYPE_VIF_IOEMU) {
+            ret = 1;
+            goto out;
+        }
+    }
+
     for (idx = 0;; idx++) {
         dt = device_type_tbl[idx];
         if (!dt)
