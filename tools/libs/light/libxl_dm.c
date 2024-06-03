@@ -668,6 +668,8 @@ static const libxl_sdl_info *dm_sdl(const libxl_domain_config *guest_config)
     const libxl_sdl_info *sdl = NULL;
     if (guest_config->b_info.type == LIBXL_DOMAIN_TYPE_HVM) {
         sdl = &guest_config->b_info.u.hvm.sdl;
+    } else if ( guest_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH ) {
+        sdl = &guest_config->b_info.u.pvh.sdl;
     } else if (guest_config->num_vfbs > 0) {
         sdl = &guest_config->vfbs[0].sdl;
     }

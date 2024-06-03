@@ -451,6 +451,7 @@ int libxl__domain_build_info_setdefault(libxl__gc *gc,
                 b_info->u.pvh.pvshim_cmdline =
                     libxl__strdup(NOGC, PVSHIM_CMDLINE);
         }
+        libxl_defbool_setdefault(&b_info->u.pvh.sdl.enable, false);
 
         break;
     default:
@@ -1837,11 +1838,6 @@ static void domcreate_launch_dm(libxl__egc *egc, libxl__multidev *multidev,
     {
         libxl__device_console console, vuart;
         libxl__device device;
-
-        for (i = 0; i < d_config->num_vfbs; i++) {
-            libxl__device_add(gc, domid, &libxl__vfb_devtype,
-                              &d_config->vfbs[i]);
-        }
 
         if (d_config->b_info.arch_arm.vuart == LIBXL_VUART_TYPE_SBSA_UART) {
             init_console_info(gc, &vuart, 0);
