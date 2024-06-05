@@ -1410,6 +1410,12 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
                 flexarray_append(dm_args, GCSPRINTF("%d", b_info->max_vcpus));
         }
 
+        if ( sdl ) {
+            flexarray_append(dm_args, "-device");
+            flexarray_append(dm_args, "virtio-tablet");
+            flexarray_append(dm_args, "-device");
+            flexarray_append(dm_args, "virtio-keyboard");
+        }
     }
 
     if (b_info->type == LIBXL_DOMAIN_TYPE_HVM) {
