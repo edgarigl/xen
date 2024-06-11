@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #if defined(CONFIG_X86)
 #include <xen/arch-x86/guest-acpi.h>
+#include <xen/arch-x86/xen.h>
 #include <xen/hvm/hvm_info_table.h>
 #elif defined(CONFIG_ARM_64)
 #include <xen/arch-arm.h>
@@ -142,13 +143,6 @@ static void add_pci_block(unsigned int seg, unsigned int nr_bus,
          "0x%04x," // Range Maximum
          "0x0000," // Translation Offset
          "0x%04x)"  // Length
-         "DWordMemory (ResourceProducer,"
-         "PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,"
-         "0x00000000,"
-         "0x%08lx,"
-         "0x%08lx,"
-         "0x00000000,"
-         "0x%08lx)"
          "QWordMemory (ResourceProducer,"
          "PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,"
          "0x0000000000000000,"
@@ -156,8 +150,7 @@ static void add_pci_block(unsigned int seg, unsigned int nr_bus,
          "0x%016llx,"
          "0x0000000000000000,"
          "0x%016llx)"
-         "}", nr_bus - 1, nr_bus, mmio32_base, mmio32_base + mmio32_size - 1,
-         mmio32_size, mmio64_base, mmio64_base + mmio64_size - 1, mmio64_size);
+         "}", nr_bus - 1, nr_bus, mmio64_base, mmio64_base + mmio64_size - 1, mmio64_size);
 
     printf("Name(_PRT, Package() {\n"); // _PRT: PCI Routing Table
     for ( dev = 1; dev < 32; dev++ )
@@ -369,8 +362,8 @@ int main(int argc, char **argv)
     pop_block();
 
     if (dm_version == QEMU_NONE) {
-        add_pci_block(0, 256, 0xE0000000, 256 * 0x100000,
-                      0xC0000000, 0x20000000, 0xC000000000, 0x4000000000, 16);
+        add_pci_block(0, 256, VIRTIO_PCIE_BASE, 256 * 0x100000, 0, 0,
+                      VIRTIO_PCIE_BASE + 256 * 0x100000, VIRTIO_PCIE_SIZE - 256 * 0x100000, 16);
         pop_block();
         return 0;
     }

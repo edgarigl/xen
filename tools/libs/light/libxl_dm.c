@@ -1860,8 +1860,32 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     flexarray_append(dm_args, "-machine");
     switch (b_info->type) {
     case LIBXL_DOMAIN_TYPE_PVH:
-        flexarray_append(dm_args, "xenpvh");
+    {
+        machinearg = libxl__strdup(gc, "xenpvh");
+        machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64",ram-low-size=%"PRIu64
+                               ",ram-high-base=%"PRIu64",ram-high-size=%"PRIu64
+                               ",virtio-pcie-base=%"PRIu64",virtio-pcie-size=%"PRIu64,
+                               machinearg,
+                               b_info->u.hvm.lowmem_base,
+                               b_info->u.hvm.lowmem_size,
+                               b_info->u.hvm.highmem_base,
+                               b_info->u.hvm.highmem_size,
+                               b_info->u.hvm.virtio_pcie_base,
+                               b_info->u.hvm.virtio_pcie_size);
+        printf("lowmem=0x%lx-0x%lx highmem=0x%lx-0x%lx "
+               "virtio_pcie_ecam=0x%lx-0x%lx virtio_pcie_mmio64=0x%lx-0x%lx\n",
+               b_info->u.hvm.lowmem_base,
+               b_info->u.hvm.lowmem_base + b_info->u.hvm.lowmem_size,
+               b_info->u.hvm.highmem_base,
+               b_info->u.hvm.highmem_base + b_info->u.hvm.highmem_size,
+               b_info->u.hvm.virtio_pcie_base,
+               b_info->u.hvm.virtio_pcie_base + 0x10000000,
+               b_info->u.hvm.virtio_pcie_base + 0x10000000,
+               b_info->u.hvm.virtio_pcie_base + b_info->u.hvm.virtio_pcie_size - 0x10000000);
+
+        flexarray_append(dm_args, machinearg);
         break;
+    }
     case LIBXL_DOMAIN_TYPE_PV:
         flexarray_append(dm_args, "xenpv");
         for (i = 0; b_info->extra_pv && b_info->extra_pv[i] != NULL; i++)

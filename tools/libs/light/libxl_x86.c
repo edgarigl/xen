@@ -693,8 +693,11 @@ static int domain_construct_memmap(libxl__gc *gc,
             e820_entries++;
 
     /* Add the HVM special pages to PVH memmap as RESERVED. */
-    if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH)
+    if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
         e820_entries++;
+        // to reserve virtio pcie ecam config space
+        e820_entries++;
+    }
 
     /* If we should have a highmem range. */
     if (highmem_size)
@@ -716,6 +719,10 @@ static int domain_construct_memmap(libxl__gc *gc,
     e820[nr].addr = lowmem_start;
     e820[nr].size = dom->lowmem_end - lowmem_start;
     e820[nr].type = E820_RAM;
+    if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
+        d_config->b_info.u.hvm.lowmem_base = e820[nr].addr;
+        d_config->b_info.u.hvm.lowmem_size = e820[nr].size;
+    }
     nr++;
 
     /* RDM mapping */
@@ -753,6 +760,20 @@ static int domain_construct_memmap(libxl__gc *gc,
         e820[nr].addr = ((uint64_t)1 << 32);
         e820[nr].size = highmem_size;
         e820[nr].type = E820_RAM;
+        if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
+            d_config->b_info.u.hvm.highmem_base = e820[nr].addr;
+            d_config->b_info.u.hvm.highmem_size = e820[nr].size;
+        }
+        nr++;
+    }
+
+    if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
+        d_config->b_info.u.hvm.virtio_pcie_base = VIRTIO_PCIE_BASE;
+        d_config->b_info.u.hvm.virtio_pcie_size = VIRTIO_PCIE_SIZE;
+        e820[nr].addr = VIRTIO_PCIE_BASE;
+        e820[nr].size = 0x10000000;
+        e820[nr].type = E820_RESERVED;
+        nr++;
     }
 
     if (xc_domain_set_memory_map(CTX->xch, domid, e820, e820_entries) != 0) {

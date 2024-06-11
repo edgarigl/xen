@@ -363,6 +363,9 @@ DEFINE_XEN_GUEST_HANDLE(xen_msr_entry_t);
  */
 #define XEN_HVM_DEBUGCONS_IOPORT 0xe9
 
+#define VIRTIO_PCIE_BASE xen_mk_ullong(0xc000000000)
+#define VIRTIO_PCIE_SIZE xen_mk_ullong(0x2000000000)
+
 #endif /* __XEN_PUBLIC_ARCH_X86_XEN_H__ */
 
 /*
