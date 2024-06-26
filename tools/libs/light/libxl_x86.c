@@ -720,8 +720,8 @@ static int domain_construct_memmap(libxl__gc *gc,
     e820[nr].size = dom->lowmem_end - lowmem_start;
     e820[nr].type = E820_RAM;
     if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
-        d_config->b_info.u.hvm.lowmem_base = e820[nr].addr;
-        d_config->b_info.u.hvm.lowmem_size = e820[nr].size;
+        d_config->b_info.u.pvh.lowmem_base = e820[nr].addr;
+        d_config->b_info.u.pvh.lowmem_size = e820[nr].size;
     }
     nr++;
 
@@ -761,15 +761,14 @@ static int domain_construct_memmap(libxl__gc *gc,
         e820[nr].size = highmem_size;
         e820[nr].type = E820_RAM;
         if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
-            d_config->b_info.u.hvm.highmem_base = e820[nr].addr;
-            d_config->b_info.u.hvm.highmem_size = e820[nr].size;
+            d_config->b_info.u.pvh.highmem_base = e820[nr].addr;
+            d_config->b_info.u.pvh.highmem_size = e820[nr].size;
         }
         nr++;
     }
 
-    if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
-        d_config->b_info.u.hvm.virtio_pcie_base = VIRTIO_PCIE_BASE;
-        d_config->b_info.u.hvm.virtio_pcie_size = VIRTIO_PCIE_SIZE;
+    if ((d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) &&
+        libxl_defbool_val(d_config->b_info.u.pvh.virtio_pci)) {
         e820[nr].addr = VIRTIO_PCIE_BASE;
         e820[nr].size = 0x10000000;
         e820[nr].type = E820_RESERVED;

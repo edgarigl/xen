@@ -2782,8 +2782,11 @@ skip_usbdev:
             parse_top_level_sdl_options(config, &vfb->sdl);
             xlu_cfg_replace_string (config, "keymap", &vfb->keymap, 0);
         }
-    } else if (c_info->type == LIBXL_DOMAIN_TYPE_PVH) {
-        parse_top_level_sdl_options(config, &b_info->u.pvh.sdl);
+    } else if (c_info->type == LIBXL_DOMAIN_TYPE_PVH) {\
+        xlu_cfg_get_defbool(config, "virtio_pci", &b_info->u.pvh.virtio_pci, 1);
+        if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
+            parse_top_level_sdl_options(config, &b_info->u.pvh.sdl);
+        }
     } else {
         parse_top_level_vnc_options(config, &b_info->u.hvm.vnc);
         parse_top_level_sdl_options(config, &b_info->u.hvm.sdl);

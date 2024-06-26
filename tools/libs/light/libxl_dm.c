@@ -1862,26 +1862,34 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     case LIBXL_DOMAIN_TYPE_PVH:
     {
         machinearg = libxl__strdup(gc, "xenpvh");
-        machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64",ram-low-size=%"PRIu64
-                               ",ram-high-base=%"PRIu64",ram-high-size=%"PRIu64
-                               ",virtio-pcie-base=%"PRIu64",virtio-pcie-size=%"PRIu64,
+
+        machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64
+                               ",ram-low-size=%"PRIu64
+                               ",ram-high-base=%"PRIu64
+                               ",ram-high-size=%"PRIu64,
                                machinearg,
-                               b_info->u.hvm.lowmem_base,
-                               b_info->u.hvm.lowmem_size,
-                               b_info->u.hvm.highmem_base,
-                               b_info->u.hvm.highmem_size,
-                               b_info->u.hvm.virtio_pcie_base,
-                               b_info->u.hvm.virtio_pcie_size);
-        printf("lowmem=0x%lx-0x%lx highmem=0x%lx-0x%lx "
-               "virtio_pcie_ecam=0x%lx-0x%lx virtio_pcie_mmio64=0x%lx-0x%lx\n",
-               b_info->u.hvm.lowmem_base,
-               b_info->u.hvm.lowmem_base + b_info->u.hvm.lowmem_size,
-               b_info->u.hvm.highmem_base,
-               b_info->u.hvm.highmem_base + b_info->u.hvm.highmem_size,
-               b_info->u.hvm.virtio_pcie_base,
-               b_info->u.hvm.virtio_pcie_base + 0x10000000,
-               b_info->u.hvm.virtio_pcie_base + 0x10000000,
-               b_info->u.hvm.virtio_pcie_base + b_info->u.hvm.virtio_pcie_size - 0x10000000);
+                               b_info->u.pvh.lowmem_base,
+                               b_info->u.pvh.lowmem_size,
+                               b_info->u.pvh.highmem_base,
+                               b_info->u.pvh.highmem_size);
+
+        printf("lowmem=0x%lx-0x%lx highmem=0x%lx-0x%lx\n",
+               b_info->u.pvh.lowmem_base,
+               b_info->u.pvh.lowmem_base + b_info->u.pvh.lowmem_size,
+               b_info->u.pvh.highmem_base,
+               b_info->u.pvh.highmem_base + b_info->u.pvh.highmem_size);
+
+        if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
+            machinearg = GCSPRINTF("%s,virtio-pcie-base=%llu,"
+                                   "virtio-pcie-size=%llu",
+                                   machinearg,
+                                   VIRTIO_PCIE_BASE, VIRTIO_PCIE_SIZE);
+            printf("virtio_pcie_ecam=0x%llx-0x%llx "
+                   "virtio_pcie_mmio64=0x%llx-0x%llx\n",
+                   VIRTIO_PCIE_BASE, VIRTIO_PCIE_BASE + 0x10000000,
+                   VIRTIO_PCIE_BASE + 0x10000000,
+                   VIRTIO_PCIE_BASE + VIRTIO_PCIE_SIZE - 0x10000000);
+        }
 
         flexarray_append(dm_args, machinearg);
         break;
