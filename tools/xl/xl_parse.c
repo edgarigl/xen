@@ -2786,6 +2786,9 @@ skip_usbdev:
         xlu_cfg_get_defbool(config, "virtio_pci", &b_info->u.pvh.virtio_pci, 1);
         if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
             parse_top_level_sdl_options(config, &b_info->u.pvh.sdl);
+            xlu_cfg_get_defbool(config, "keyboard", &b_info->u.pvh.keyboard, 1);
+            xlu_cfg_get_defbool(config, "mouse", &b_info->u.pvh.mouse, 0);
+            xlu_cfg_get_defbool(config, "tablet", &b_info->u.pvh.tablet, 0);
         }
     } else {
         parse_top_level_vnc_options(config, &b_info->u.hvm.vnc);

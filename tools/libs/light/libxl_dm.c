@@ -1410,11 +1410,15 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
                 flexarray_append(dm_args, GCSPRINTF("%d", b_info->max_vcpus));
         }
 
-        if ( sdl ) {
-            flexarray_append(dm_args, "-device");
-            flexarray_append(dm_args, "virtio-tablet");
-            flexarray_append(dm_args, "-device");
-            flexarray_append(dm_args, "virtio-keyboard");
+        if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
+            if (libxl_defbool_val(b_info->u.pvh.keyboard))
+                flexarray_vappend(dm_args, "-device", "virtio-keyboard", NULL);
+
+            if (libxl_defbool_val(b_info->u.pvh.mouse))
+                flexarray_vappend(dm_args, "-device", "virtio-mouse", NULL);
+
+            if (libxl_defbool_val(b_info->u.pvh.tablet))
+                flexarray_vappend(dm_args, "-device", "virtio-tablet", NULL);
         }
     }
 
