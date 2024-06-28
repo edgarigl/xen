@@ -454,7 +454,7 @@ int libxl__domain_build_info_setdefault(libxl__gc *gc,
 
         libxl_defbool_setdefault(&b_info->u.pvh.virtio_pci, true);
         libxl_defbool_setdefault(&b_info->u.pvh.sdl.enable, false);
-        libxl_defbool_setdefault(&b_info->u.pvh.keyboard, false);
+        libxl_defbool_setdefault(&b_info->u.pvh.keyboard, true);
         libxl_defbool_setdefault(&b_info->u.pvh.mouse, false);
         libxl_defbool_setdefault(&b_info->u.pvh.tablet, false);
 
