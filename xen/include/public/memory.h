@@ -733,6 +733,19 @@ DEFINE_XEN_GUEST_HANDLE(xen_vnuma_topology_info_t);
 
 /* Next available subop number is 29 */
 
+/* Experimental.  */
+#define XENMEM_gfn2mfn                40
+struct xen_gfn2mfn {
+    domid_t domid;
+    uint64_t gfn;
+    uint64_t mfn;
+    /* xenmem_access_t */
+    uint8_t access;
+};
+typedef struct xen_gfn2mfn xen_gfn2mfn_t;
+DEFINE_XEN_GUEST_HANDLE(xen_gfn2mfn_t);
+
+
 #endif /* __XEN_PUBLIC_MEMORY_H__ */
 
 /*

@@ -1531,6 +1531,42 @@ long do_memory_op(unsigned long cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
         break;
     }
 
+    case XENMEM_gfn2mfn:
+    {
+        struct xen_gfn2mfn xatp;
+
+        if ( copy_from_guest(&xatp, arg, 1) )
+            return -EFAULT;
+
+        d = rcu_lock_domain_by_any_id(xatp.domid);
+        if ( d == NULL )
+            return -ESRCH;
+
+#ifdef CONFIG_X86
+        {
+            p2m_type_t p2mt;
+
+            mfn = get_gfn_query(d, xatp.gfn, &p2mt);
+        }
+#else
+        xatp.mfn = mfn_x(gfn_to_mfn(d, _gfn(xatp.gfn)));
+#endif
+
+        if (0)
+        {
+            /* Too slow.  */
+            xenmem_access_t access;
+            p2m_get_mem_access(d, _gfn(xatp.gfn), &access, 0);
+            xatp.access = access;
+        }
+        rcu_unlock_domain(d);
+
+        if ( copy_to_guest(arg, &xatp, 1) )
+            return -EFAULT;
+
+        return 0;
+    }
+
     case XENMEM_add_to_physmap:
     {
         struct xen_add_to_physmap xatp;
