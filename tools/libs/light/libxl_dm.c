@@ -1884,15 +1884,21 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
                b_info->u.pvh.highmem_base + b_info->u.pvh.highmem_size);
 
         if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
-            machinearg = GCSPRINTF("%s,virtio-pcie-base=%llu,"
-                                   "virtio-pcie-size=%llu",
+            machinearg = GCSPRINTF("%s,pcie-ecam-base=%llu,pcie-ecam-size=%llu"
+                                   ",pcie-mmio-base=%lu,pcie-mmio-size=%lu"
+                                   ",pcie-64bit-mmio-base=%llu"
+                                   ",pcie-64bit-mmio-size=%llu",
                                    machinearg,
-                                   VIRTIO_PCIE_BASE, VIRTIO_PCIE_SIZE);
-            printf("virtio_pcie_ecam=0x%llx-0x%llx "
-                   "virtio_pcie_mmio64=0x%llx-0x%llx\n",
-                   VIRTIO_PCIE_BASE, VIRTIO_PCIE_BASE + 0x10000000,
-                   VIRTIO_PCIE_BASE + 0x10000000,
-                   VIRTIO_PCIE_BASE + VIRTIO_PCIE_SIZE - 0x10000000);
+                                   PCIE_VIRTIO_ECAM_BASE, PCIE_VIRTIO_ECAM_SIZE,
+                                   PCIE_VIRTIO_MMIO_BASE, PCIE_VIRTIO_MMIO_SIZE,
+                                   PCIE_VIRTIO_64BIT_MMIO_BASE,
+                                   PCIE_VIRTIO_64BIT_MMIO_SIZE);
+            printf("pcie-ecam-base=0x%llx,pcie-ecam-size=0x%llx"
+                   ",pcie-mmio-base=0x%lx,pcie-mmio-size=0x%lx"
+                   ",pcie-64bit-mmio-base=0x%llx,pcie-64bit-mmio-size=0x%llx\n",
+                   PCIE_VIRTIO_ECAM_BASE, PCIE_VIRTIO_ECAM_SIZE,
+                   PCIE_VIRTIO_MMIO_BASE, PCIE_VIRTIO_MMIO_SIZE,
+                   PCIE_VIRTIO_64BIT_MMIO_BASE, PCIE_VIRTIO_64BIT_MMIO_SIZE);
         }
 
         flexarray_append(dm_args, machinearg);
