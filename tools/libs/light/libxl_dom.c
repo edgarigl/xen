@@ -1059,7 +1059,7 @@ int libxl__build_hvm(libxl__gc *gc, uint32_t domid,
 {
     libxl_ctx *ctx = libxl__gc_owner(gc);
     int rc;
-    uint64_t mmio_start, lowmem_end, highmem_end, mem_size;
+    uint64_t mmio_hole_memkb, mmio_start, lowmem_end, highmem_end, mem_size;
     libxl_domain_build_info *const info = &d_config->b_info;
     struct xc_dom_image *dom = NULL;
     bool device_model = info->type == LIBXL_DOMAIN_TYPE_HVM ? true : false;
@@ -1090,12 +1090,15 @@ int libxl__build_hvm(libxl__gc *gc, uint32_t domid,
     mem_size = (uint64_t)(info->max_memkb - info->video_memkb) << 10;
     dom->target_pages = (uint64_t)(info->target_memkb - info->video_memkb) >> 2;
     dom->claim_enabled = libxl_defbool_val(info->claim_mode);
-    if (info->u.hvm.mmio_hole_memkb) {
-        uint64_t max_ram_below_4g = (1ULL << 32) -
-            (info->u.hvm.mmio_hole_memkb << 10);
+    if (info->type == LIBXL_DOMAIN_TYPE_HVM)
+        mmio_hole_memkb = info->u.hvm.mmio_hole_memkb;
+    else
+        mmio_hole_memkb = info->u.pvh.mmio_hole_memkb;
+    if (mmio_hole_memkb) {
+        uint64_t max_ram_below_4g = (1ULL << 32) - (mmio_hole_memkb << 10);
 
         if (max_ram_below_4g < HVM_BELOW_4G_MMIO_START)
-            dom->mmio_size = info->u.hvm.mmio_hole_memkb << 10;
+            dom->mmio_size = mmio_hole_memkb << 10;
     }
 
     rc = libxl__domain_firmware(gc, info, state, dom);

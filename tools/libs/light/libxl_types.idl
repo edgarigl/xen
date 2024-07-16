@@ -719,6 +719,7 @@ libxl_domain_build_info = Struct("domain_build_info",[
                                        ("lowmem_size", uint64),
                                        ("highmem_base", uint64),
                                        ("highmem_size", uint64),
+                                       ("mmio_hole_memkb", MemKB),
                                        ("virtio_pci", libxl_defbool),
                                        ("keyboard", libxl_defbool),
                                        ("mouse", libxl_defbool),

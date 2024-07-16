@@ -2014,18 +2014,6 @@ void parse_config_data(const char *config_source,
 
         break;
     case LIBXL_DOMAIN_TYPE_PVH:
-        if (!xlu_cfg_get_long(config, "mmio_hole", &l, 0)) {
-            uint64_t mmio_hole_size;
-
-            b_info->u.hvm.mmio_hole_memkb = l * 1024;
-            mmio_hole_size = b_info->u.hvm.mmio_hole_memkb * 1024;
-            if (mmio_hole_size < HVM_BELOW_4G_MMIO_LENGTH ||
-                mmio_hole_size > HVM_BELOW_4G_MMIO_START) {
-                fprintf(stderr,
-                        "ERROR: invalid value %ld for \"mmio_hole\"\n", l);
-                exit (1);
-            }
-        }
     case LIBXL_DOMAIN_TYPE_PV:
     {
         /*
@@ -2782,14 +2770,24 @@ skip_usbdev:
             parse_top_level_sdl_options(config, &vfb->sdl);
             xlu_cfg_replace_string (config, "keymap", &vfb->keymap, 0);
         }
-    } else if (c_info->type == LIBXL_DOMAIN_TYPE_PVH) {\
-        xlu_cfg_get_defbool(config, "virtio_pci", &b_info->u.pvh.virtio_pci, 1);
-        if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
-            parse_top_level_sdl_options(config, &b_info->u.pvh.sdl);
-            xlu_cfg_get_defbool(config, "keyboard", &b_info->u.pvh.keyboard, 0);
-            xlu_cfg_get_defbool(config, "mouse", &b_info->u.pvh.mouse, 0);
-            xlu_cfg_get_defbool(config, "tablet", &b_info->u.pvh.tablet, 0);
+    } else if (c_info->type == LIBXL_DOMAIN_TYPE_PVH) {
+        if (!xlu_cfg_get_long(config, "mmio_hole", &l, 0)) {
+            uint64_t mmio_hole_size;
+
+            b_info->u.pvh.mmio_hole_memkb = l * 1024;
+            mmio_hole_size = b_info->u.pvh.mmio_hole_memkb * 1024;
+            if (mmio_hole_size < HVM_BELOW_4G_MMIO_LENGTH ||
+                mmio_hole_size > HVM_BELOW_4G_MMIO_START) {
+                fprintf(stderr,
+                        "ERROR: invalid value %ld for \"mmio_hole\"\n", l);
+                exit (1);
+            }
         }
+        xlu_cfg_get_defbool(config, "virtio_pci", &b_info->u.pvh.virtio_pci, 0);
+        parse_top_level_sdl_options(config, &b_info->u.pvh.sdl);
+        xlu_cfg_get_defbool(config, "keyboard", &b_info->u.pvh.keyboard, 0);
+        xlu_cfg_get_defbool(config, "mouse", &b_info->u.pvh.mouse, 0);
+        xlu_cfg_get_defbool(config, "tablet", &b_info->u.pvh.tablet, 0);
     } else {
         parse_top_level_vnc_options(config, &b_info->u.hvm.vnc);
         parse_top_level_sdl_options(config, &b_info->u.hvm.sdl);

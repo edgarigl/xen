@@ -452,6 +452,9 @@ int libxl__domain_build_info_setdefault(libxl__gc *gc,
                     libxl__strdup(NOGC, PVSHIM_CMDLINE);
         }
 
+        if (b_info->u.pvh.mmio_hole_memkb == LIBXL_MEMKB_DEFAULT)
+            b_info->u.pvh.mmio_hole_memkb = 0;
+
         libxl_defbool_setdefault(&b_info->u.pvh.virtio_pci, true);
         libxl_defbool_setdefault(&b_info->u.pvh.sdl.enable, false);
         libxl_defbool_setdefault(&b_info->u.pvh.keyboard, true);
