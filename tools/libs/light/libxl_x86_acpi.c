@@ -156,6 +156,10 @@ static int init_acpi_config(libxl__gc *gc,
     if (libxl_defbool_val(b_info->u.pvh.virtio_pci))
         config->table_flags |= ACPI_HAS_VIRTIO_PCI_ROOT;
 
+    /* Enable Power/Sleep Button fixed events.
+       Do not advertise GPE0 support. */
+    config->table_flags |= ACPI_HAS_BUTTONS | ACPI_NO_GPE0;
+
     config->acpi_revision = 5;
 
     rc = 0;

@@ -30,6 +30,7 @@
 #define ACPI_NO_PCAT_COMPAT        (1<<16)
 #define ACPI_HAS_VPCI_ROOT         (1<<17)
 #define ACPI_HAS_VIRTIO_PCI_ROOT   (1<<18)
+#define ACPI_NO_GPE0               (1<<19)
 
 struct xen_vmemrange;
 struct acpi_numa {

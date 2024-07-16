@@ -714,6 +714,8 @@ int acpi_build_tables(struct acpi_ctxt *ctxt, struct acpi_config *config)
     }
     if ( !(config->table_flags & ACPI_HAS_BUTTONS) )
         Fadt.flags |= (ACPI_PWR_BUTTON | ACPI_SLP_BUTTON);
+    if ( config->table_flags & ACPI_NO_GPE0 )
+        Fadt.gpe0_blk = Fadt.gpe0_blk_len = 0;
     memcpy(fadt, &Fadt, fadt_size);
     /*
      * For both ACPI 4 and 5 the revision of the FADT matches the ACPI
