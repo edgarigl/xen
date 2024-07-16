@@ -338,9 +338,10 @@ int pmtimer_change_ioport(struct domain *d, uint64_t version)
 
 void pmtimer_init(struct vcpu *v)
 {
-    PMTState *s = &v->domain->arch.hvm.pl_time->vpmt;
+    struct domain *d = v->domain;
+    PMTState *s = &d->arch.hvm.pl_time->vpmt;
 
-    if ( !has_vpm(v->domain) )
+    if ( !has_vpm(d) )
         return;
 
     spin_lock_init(&s->lock);
@@ -349,10 +350,19 @@ void pmtimer_init(struct vcpu *v)
     s->not_accounted = 0;
     s->vcpu = v;
 
-    /* Intercept port I/O (need two handlers because PM1a_CNT is between
-     * PM1a_EN and TMR_VAL and is handled by qemu) */
-    register_portio_handler(v->domain, TMR_VAL_ADDR_V0, 4, handle_pmt_io);
-    register_portio_handler(v->domain, PM1a_STS_ADDR_V0, 4, handle_evt_io);
+    if (d->arch.emulation_flags ==
+        (X86_EMU_ALL & ~(X86_EMU_VPCI | X86_EMU_USE_PIRQ))) // hvm domain
+    {
+        /* Intercept port I/O (need two handlers because PM1a_CNT is between
+         * PM1a_EN and TMR_VAL and is handled by qemu) */
+        register_portio_handler(d, TMR_VAL_ADDR_V0, 4, handle_pmt_io);
+        register_portio_handler(d, PM1a_STS_ADDR_V0, 4, handle_evt_io);
+    }
+    else // pvh domain
+    {
+        d->arch.hvm.params[HVM_PARAM_ACPI_IOPORTS_LOCATION] = 1;
+        register_portio_handler(d, PM1a_STS_ADDR_V1, 4, handle_evt_io);
+    }
 
     /* Set up callback to fire SCIs when the MSB of TMR_VAL changes */
     init_timer(&s->timer, pmt_timer_callback, s, v->processor);

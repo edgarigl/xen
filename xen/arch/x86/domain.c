@@ -757,7 +757,7 @@ static bool emulation_flags_ok(const struct domain *d, uint32_t emflags)
              /* HVM PIRQ feature is user-selectable. */
              (emflags & ~X86_EMU_USE_PIRQ) !=
              (X86_EMU_ALL & ~(X86_EMU_VPCI | X86_EMU_USE_PIRQ)) &&
-             emflags != (X86_EMU_LAPIC | X86_EMU_IOAPIC))
+             emflags != (X86_EMU_LAPIC | X86_EMU_IOAPIC | X86_EMU_PM))
             return false;
     }
     else if ( emflags != 0 && emflags != X86_EMU_PIT )
