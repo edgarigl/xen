@@ -20,6 +20,8 @@
 #define PM1a_STS_ADDR_V1 (ACPI_PM1A_EVT_BLK_ADDRESS_V1)
 #define PM1a_EN_ADDR_V1  (ACPI_PM1A_EVT_BLK_ADDRESS_V1 + 2)
 #define TMR_VAL_ADDR_V1  (ACPI_PM_TMR_BLK_ADDRESS_V1)
+#define PM1a_CNT_ADDR_V1 (ACPI_PM1A_CNT_BLK_ADDRESS_V1)
+#define GPE0_BLK_ADDR_V1 (ACPI_GPE0_BLK_ADDRESS_V1)
 
 /* The interesting bits of the PM1a_STS register */
 #define TMR_STS    (1 << 0)
@@ -205,6 +207,13 @@ static int cf_check handle_evt_io(
     return X86EMUL_OKAY;
 }
 
+static int cf_check ignore_io(
+    int dir, unsigned int port, unsigned int bytes, uint32_t *val)
+{
+    if ( dir == IOREQ_READ )
+        *val = 0;
+    return X86EMUL_OKAY;
+}
 
 /* Handle port I/O to the TMR_VAL register */
 static int cf_check handle_pmt_io(
@@ -338,9 +347,10 @@ int pmtimer_change_ioport(struct domain *d, uint64_t version)
 
 void pmtimer_init(struct vcpu *v)
 {
-    PMTState *s = &v->domain->arch.hvm.pl_time->vpmt;
+    struct domain *d = v->domain;
+    PMTState *s = &d->arch.hvm.pl_time->vpmt;
 
-    if ( !has_vpm(v->domain) )
+    if ( !has_vpm(d) )
         return;
 
     spin_lock_init(&s->lock);
@@ -349,10 +359,22 @@ void pmtimer_init(struct vcpu *v)
     s->not_accounted = 0;
     s->vcpu = v;
 
-    /* Intercept port I/O (need two handlers because PM1a_CNT is between
-     * PM1a_EN and TMR_VAL and is handled by qemu) */
-    register_portio_handler(v->domain, TMR_VAL_ADDR_V0, 4, handle_pmt_io);
-    register_portio_handler(v->domain, PM1a_STS_ADDR_V0, 4, handle_evt_io);
+    if (d->arch.emulation_flags ==
+        (X86_EMU_ALL & ~(X86_EMU_VPCI | X86_EMU_USE_PIRQ))) // hvm domain
+    {
+        /* Intercept port I/O (need two handlers because PM1a_CNT is between
+         * PM1a_EN and TMR_VAL and is handled by qemu) */
+        register_portio_handler(v->domain, TMR_VAL_ADDR_V0, 4, handle_pmt_io);
+        register_portio_handler(v->domain, PM1a_STS_ADDR_V0, 4, handle_evt_io);
+    }
+    else // pvh domain
+    {
+        d->arch.hvm.params[HVM_PARAM_ACPI_IOPORTS_LOCATION] = 1;
+        register_portio_handler(d, TMR_VAL_ADDR_V1, 4, handle_pmt_io);
+        register_portio_handler(d, PM1a_STS_ADDR_V1, 4, handle_evt_io);
+        register_portio_handler(d, PM1a_CNT_ADDR_V1, 4, ignore_io);
+        register_portio_handler(d, GPE0_BLK_ADDR_V1, 8, ignore_io);
+    }
 
     /* Set up callback to fire SCIs when the MSB of TMR_VAL changes */
     init_timer(&s->timer, pmt_timer_callback, s, v->processor);

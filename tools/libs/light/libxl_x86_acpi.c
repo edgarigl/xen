@@ -149,7 +149,7 @@ static int init_acpi_config(libxl__gc *gc,
     config->ioapic_base_address = IOAPIC_BASE_ADDRESS;
     config->ioapic_id = 0;
     config->pci_isa_irq_mask = 0;
-    config->table_flags = ACPI_HAS_IOAPIC | ACPI_HAS_HPET;
+    config->table_flags = ACPI_HAS_IOAPIC | ACPI_HAS_HPET | ACPI_HAS_BUTTONS;
 
     config->acpi_revision = 5;
 
