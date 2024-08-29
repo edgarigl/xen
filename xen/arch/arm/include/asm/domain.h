@@ -10,6 +10,7 @@
 #include <asm/gic.h>
 #include <asm/vgic.h>
 #include <asm/vpl011.h>
+#include <asm/vmp.h>
 #include <public/hvm/params.h>
 
 struct hvm_domain
@@ -114,6 +115,8 @@ struct arch_domain
 #ifdef CONFIG_SBSA_VUART_CONSOLE
     struct vpl011 vpl011;
 #endif
+
+    struct vmp vmp;
 
 #ifdef CONFIG_TEE
     void *tee;

@@ -425,6 +425,8 @@ typedef uint64_t xen_callback_t;
 /* Virtio MMIO mappings */
 #define GUEST_VIRTIO_MMIO_BASE   xen_mk_ullong(0x02000000)
 #define GUEST_VIRTIO_MMIO_SIZE   xen_mk_ullong(0x00100000)
+#define GUEST_VIRTIO_PROXY_BASE    xen_mk_ullong(0x39004000)
+#define GUEST_VIRTIO_PROXY_SIZE    xen_mk_ullong(0x00001000)
 
 /*
  * vGIC mappings: Only one set of mapping is used by the guest.

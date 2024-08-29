@@ -29,6 +29,7 @@
 #include <asm/vfp.h>
 #include <asm/vgic.h>
 #include <asm/vtimer.h>
+#include <asm/vmp.h>
 
 #include "vpci.h"
 #include "vuart.h"
@@ -1068,6 +1069,7 @@ int domain_relinquish_resources(struct domain *d)
          * allocated via a DOMCTL call XEN_DOMCTL_vuart_op.
          */
         domain_vpl011_deinit(d);
+        domain_vmp_deinit(d);
 
 #ifdef CONFIG_IOREQ_SERVER
         ioreq_server_destroy_all(d);

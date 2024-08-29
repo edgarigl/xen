@@ -439,7 +439,8 @@ int evtchn_bind_interdomain(evtchn_bind_interdomain_t *bind, struct domain *ld,
     rchn->u.interdomain.remote_dom  = ld;
     rchn->u.interdomain.remote_port = lport;
     rchn->state                     = ECS_INTERDOMAIN;
-
+    printk("%s: rd=%d rport=%d ld=%d lport=%d\n", __func__,
+            rd->domain_id, rport, ld->domain_id, lport);
     /*
      * We may have lost notifications on the remote unbound port. Fix that up
      * here by conservatively always setting a notification on the local port.
@@ -503,6 +504,10 @@ int evtchn_bind_virq(evtchn_bind_virq_t *bind, evtchn_port_t port)
 
     rc = 0;
 
+    printk("%s: domid=%d port=%d virq=%d\n",
+            __func__,
+            d->domain_id,
+            port, virq);
     chn = evtchn_from_port(d, port);
 
     evtchn_write_lock(chn);
@@ -1271,6 +1276,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
     {
     case EVTCHNOP_alloc_unbound: {
         struct evtchn_alloc_unbound alloc_unbound;
+        printk("%s: EVTCHNOP_alloc_unbound\n", __func__);
         if ( copy_from_guest(&alloc_unbound, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_alloc_unbound(&alloc_unbound, 0);
@@ -1281,6 +1287,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_bind_interdomain: {
         struct evtchn_bind_interdomain bind_interdomain;
+        printk("%s: EVTCHNOP_bind_interdomain\n", __func__);
         if ( copy_from_guest(&bind_interdomain, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_bind_interdomain(&bind_interdomain, current->domain, 0);
@@ -1291,6 +1298,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_bind_virq: {
         struct evtchn_bind_virq bind_virq;
+        printk("%s: EVTCHNOP_bind_virq\n", __func__);
         if ( copy_from_guest(&bind_virq, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_bind_virq(&bind_virq, 0);
@@ -1301,6 +1309,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_bind_ipi: {
         struct evtchn_bind_ipi bind_ipi;
+        printk("%s: EVTCHNOP_bind_ipi\n", __func__);
         if ( copy_from_guest(&bind_ipi, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_bind_ipi(&bind_ipi);
@@ -1311,6 +1320,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_bind_pirq: {
         struct evtchn_bind_pirq bind_pirq;
+        printk("%s: EVTCHNOP_bind_pirq\n", __func__);
         if ( copy_from_guest(&bind_pirq, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_bind_pirq(&bind_pirq);
@@ -1321,6 +1331,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_close: {
         struct evtchn_close close;
+        printk("%s: EVTCHNOP_close\n", __func__);
         if ( copy_from_guest(&close, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_close(current->domain, close.port, 1);
@@ -1347,6 +1358,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_bind_vcpu: {
         struct evtchn_bind_vcpu bind_vcpu;
+        printk("%s: EVTCHNOP_bind_vcpu\n", __func__);
         if ( copy_from_guest(&bind_vcpu, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_bind_vcpu(bind_vcpu.port, bind_vcpu.vcpu);
@@ -1387,6 +1399,7 @@ long do_event_channel_op(int cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case EVTCHNOP_init_control: {
         struct evtchn_init_control init_control;
+        printk("%s: EVTCHNOP_init_control\n", __func__);
         if ( copy_from_guest(&init_control, arg, 1) != 0 )
             return -EFAULT;
         rc = evtchn_fifo_init_control(&init_control);

@@ -32,6 +32,8 @@ static int handle_vuart_init(struct domain *d,
     int rc;
     struct vpl011_init_info info;
 
+    printk("%s: domid=%d gfn=%lx\n", __func__,
+            vuart_op->console_domid, vuart_op->gfn);
     info.console_domid = vuart_op->console_domid;
     info.gfn = _gfn(vuart_op->gfn);
 
@@ -45,7 +47,9 @@ static int handle_vuart_init(struct domain *d,
 
     if ( !rc )
         vuart_op->evtchn = info.evtchn;
-
+#if 1
+    rc = domain_vmp_init(d);
+#endif
     return rc;
 }
 

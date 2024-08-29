@@ -847,6 +847,7 @@ static int ioreq_server_map_io_range(struct domain *d, ioservid_t id,
     struct rangeset *r;
     int rc;
 
+    printk("%s: %lx - %lx\n", __func__, start, end);
     if ( start > end )
         return -EINVAL;
 

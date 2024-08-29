@@ -32,8 +32,10 @@ static enum io_state handle_read(const struct mmio_handler *handler,
      * setting r).
      */
     register_t r = 0;
+    int rc;
 
-    if ( !handler->ops->read(v, info, &r, handler->priv) )
+    rc = handler->ops->read(v, info, &r, handler->priv);
+    if ( !rc )
         return IO_ABORT;
 
     r = sign_extend(dabt, r);
