@@ -908,6 +908,7 @@ static int __init pvh_setup_acpi_madt(struct domain *d, paddr_t *addr)
      * tables described in the headers.
      */
     madt->header.revision = min_t(unsigned char, table->revision, 4);
+    madt->flags = ACPI_MADT_PCAT_COMPAT;
 
     /* Setup the IO APIC entries. */
     io_apic = (void *)(madt + 1);

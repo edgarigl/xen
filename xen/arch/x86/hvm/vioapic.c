@@ -178,6 +178,13 @@ static int vioapic_hwdom_map_gsi(unsigned int gsi, unsigned int trig,
 
     ASSERT(is_hardware_domain(currd));
 
+    /* IRQ2 is handled by Xen and cannot be passed through to Dom0.
+       Dom0 uses GSI2 for virtual timer interrupt override, so
+       skip it here, to follow unprivileged path.
+    */
+    if ( gsi == 2 )
+        return 0;
+
     /* Interrupt has been unmasked, bind it now. */
     ret = mp_register_gsi(gsi, trig, pol);
     if ( ret == -EEXIST )
