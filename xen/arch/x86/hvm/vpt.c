@@ -610,29 +610,39 @@ static void pt_adjust_vcpu(struct periodic_time *pt, struct vcpu *v)
 
 void pt_adjust_global_vcpu_target(struct vcpu *v)
 {
-    struct PITState *vpit;
     struct pl_time *pl_time;
-    int i;
 
-    if ( !v || !has_vpit(v->domain) )
+    if ( !v )
         return;
 
-    vpit = &v->domain->arch.vpit;
+    if ( has_vpit(v->domain) )
+    {
+        struct PITState *vpit;
 
-    spin_lock(&vpit->lock);
-    pt_adjust_vcpu(&vpit->pt0, v);
-    spin_unlock(&vpit->lock);
+        vpit = &v->domain->arch.vpit;
+        spin_lock(&vpit->lock);
+        pt_adjust_vcpu(&vpit->pt0, v);
+        spin_unlock(&vpit->lock);
+    }
 
     pl_time = v->domain->arch.hvm.pl_time;
 
-    spin_lock(&pl_time->vrtc.lock);
-    pt_adjust_vcpu(&pl_time->vrtc.pt, v);
-    spin_unlock(&pl_time->vrtc.lock);
+    if ( has_vrtc(v->domain) )
+    {
+        spin_lock(&pl_time->vrtc.lock);
+        pt_adjust_vcpu(&pl_time->vrtc.pt, v);
+        spin_unlock(&pl_time->vrtc.lock);
+    }
 
-    write_lock(&pl_time->vhpet.lock);
-    for ( i = 0; i < HPET_TIMER_NUM; i++ )
-        pt_adjust_vcpu(&pl_time->vhpet.pt[i], v);
-    write_unlock(&pl_time->vhpet.lock);
+    if ( has_vhpet(v->domain) )
+    {
+        int i;
+
+        write_lock(&pl_time->vhpet.lock);
+        for ( i = 0; i < HPET_TIMER_NUM; i++ )
+            pt_adjust_vcpu(&pl_time->vhpet.pt[i], v);
+        write_unlock(&pl_time->vhpet.lock);
+    }
 }
 
 
