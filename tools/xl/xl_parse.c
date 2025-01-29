@@ -3026,6 +3026,22 @@ skip_usbdev:
     d_config->num_virtios = 0;
     parse_virtio_list(config, d_config);
 
+    /* Enable virtio pci support to PVH guests if needed */
+    if (c_info->type == LIBXL_DOMAIN_TYPE_PVH) {
+        /* Check if args are passed to qemu through device_model_args option */
+        if (b_info->extra != NULL) {
+            libxl_defbool_set(&b_info->u.pvh.virtio_pci, true);
+        } else {
+            /* Check for virtio emulated nics */
+            for (i = 0; i < d_config->num_nics; i++) {
+                if (!strcmp(d_config->nics[i].model, "virtio-net")) {
+                    libxl_defbool_set(&b_info->u.pvh.virtio_pci, true);
+                    break;
+                }
+            }
+        }
+    }
+
     xlu_cfg_get_defbool(config, "xend_suspend_evtchn_compat",
                         &c_info->xend_suspend_evtchn_compat, 0);
 
