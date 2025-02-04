@@ -4071,7 +4071,7 @@ int libxl__need_xenpv_qemu(libxl__gc *gc, libxl_domain_config *d_config)
     /* For PVH qemu virtio device args are passed to device_model_args */
     if ((d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) &&
         (d_config->b_info.extra != NULL))
-        ret = 1
+        ret = 1;
 
 out:
     return ret;
