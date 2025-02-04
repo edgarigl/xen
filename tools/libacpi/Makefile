@@ -17,6 +17,8 @@ DSDT_FILES ?= $(C_SRC-y)
 C_SRC = $(addprefix $(ACPI_BUILD_DIR)/, $(DSDT_FILES))
 H_SRC = $(addprefix $(ACPI_BUILD_DIR)/, ssdt_s3.h ssdt_s4.h ssdt_pm.h)
 H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, ssdt_tpm.h ssdt_tpm2.h ssdt_laptop_slate.h)
+H_SRC-$(CONFIG_X86) = ssdt_pvh_vpci.h ssdt_pvh_virtio_pci.h
+H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, $(H_SRC-y))
 
 MKDSDT_CFLAGS-$(CONFIG_ARM_64) = -DCONFIG_ARM_64
 MKDSDT_CFLAGS-$(CONFIG_X86) = -DCONFIG_X86
@@ -35,7 +37,7 @@ $(H_SRC): $(ACPI_BUILD_DIR)/%.h: %.asl
 	$(IASL) -vs -p $(ACPI_BUILD_DIR)/$*.$(TMP_SUFFIX) -tc $<
 	sed -e 's/AmlCode/$*/g' -e 's/_aml_code//g' $(ACPI_BUILD_DIR)/$*.hex >$@
 	rm -f $(addprefix $(ACPI_BUILD_DIR)/, $*.aml $*.hex)
- 
+
 $(MK_DSDT): mk_dsdt.c
 	$(HOSTCC) $(HOSTCFLAGS) $(MKDSDT_CFLAGS-y) $(CFLAGS_xeninclude) -D__XEN_TOOLS__ -o $@ mk_dsdt.c
 
@@ -59,6 +61,14 @@ $(ACPI_BUILD_DIR)/dsdt_pvh.asl: dsdt_acpi_info.asl $(MK_DSDT)
 	cat dsdt_acpi_info.asl >> $@
 	$(MK_DSDT) --debug=$(debug) --maxcpu any --dm-version none >> $@
 
+ssdt_pvh_vpci.asl: $(MK_DSDT)
+	printf "DefinitionBlock (\"SSDT_VPCI_ROOT.aml\", \"SSDT\", 2, \"Xen\", \"HVM\", 0)\n{\n" > $@
+	$(MK_DSDT) --vpci y --dm-version none >> $@
+
+ssdt_pvh_virtio_pci.asl: $(MK_DSDT)
+	printf "DefinitionBlock (\"SSDT_VIRTIO_PCI_ROOT.aml\", \"SSDT\", 2, \"Xen\", \"HVM\", 0)\n{\n" > $@
+	$(MK_DSDT) --virtio-pci y --dm-version none >> $@
+
 $(ACPI_BUILD_DIR)/dsdt_anycpu_arm.asl: $(MK_DSDT)
 	printf "DefinitionBlock (\"DSDT.aml\", \"DSDT\", 3, \"Xen\", \"ARM\", 1)\n{" > $@.$(TMP_SUFFIX)
 	$(MK_DSDT) --debug=$(debug) >> $@.$(TMP_SUFFIX)
@@ -74,6 +84,7 @@ $(C_SRC): $(ACPI_BUILD_DIR)/%.c: $(ACPI_BUILD_DIR)/%.asl
 clean:
 	rm -f $(C_SRC) $(H_SRC) $(MK_DSDT) $(C_SRC:=.$(TMP_SUFFIX))
 	rm -f $(patsubst %.c,%.hex,$(C_SRC)) $(patsubst %.c,%.aml,$(C_SRC)) $(patsubst %.c,%.asl,$(C_SRC))
+	rm -f $(patsubst %.h,%.asl,$(H_SRC-y))
 
 distclean: clean
 
