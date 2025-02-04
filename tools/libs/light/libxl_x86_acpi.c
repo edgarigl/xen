@@ -159,6 +159,8 @@ static int init_acpi_config(libxl__gc *gc,
     /* Enable Power/Sleep Button fixed events.
        Do not advertise GPE0 support. */
     config->table_flags |= ACPI_HAS_BUTTONS | ACPI_NO_GPE0;
+    /* Idle - C2 Processor Power State */
+    config->table_flags |= ACPI_HAS_C2_STATE;
 
     config->acpi_revision = 5;
 

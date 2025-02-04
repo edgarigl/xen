@@ -6,7 +6,9 @@
  * Copyright (c) 2006, Intel Corporation.
  */
 
+#include <xen/event.h>
 #include <xen/sched.h>
+#include <xen/softirq.h>
 #include <asm/hvm/vpt.h>
 #include <asm/hvm/io.h>
 #include <asm/hvm/save.h>
@@ -42,6 +44,11 @@
 /* We provide a 32-bit counter (must match the TMR_VAL_EXT bit in the FADT) */
 #define TMR_VAL_MASK  (0xffffffffU)
 #define TMR_VAL_MSB   (0x80000000U)
+
+/* P_BLK IO address must match the value in DSDT Processor structures */
+#define P_BLK         (0xb010)
+/* Reading of P_LVL2 register places the processors into the C2 state */
+#define P_LVL2        (P_BLK + 4)
 
 /* Dispatch SCIs based on the PM1a_STS and PM1a_EN registers */
 static void pmt_update_sci(PMTState *s)
@@ -336,6 +343,29 @@ int pmtimer_change_ioport(struct domain *d, uint64_t version)
     return 0;
 }
 
+static int cf_check enter_c2(int dir, unsigned int port,
+                             unsigned int bytes, uint32_t *val)
+{
+    if ( dir == IOREQ_READ )
+    {
+        struct vcpu *v = current;
+
+        set_bit(_VPF_blocked, &v->pause_flags);
+        smp_mb__after_atomic();
+
+        arch_vcpu_block(v);
+        if ( hvm_local_events_need_delivery(v) ||
+             (vcpu_info(v, evtchn_upcall_pending) &&
+              !vcpu_info(v, evtchn_upcall_mask)) ) {
+            clear_bit(_VPF_blocked, &v->pause_flags);
+        }
+        else {
+            raise_softirq(SCHEDULE_SOFTIRQ);
+        }
+    }
+    return X86EMUL_OKAY;
+}
+
 void pmtimer_init(struct vcpu *v)
 {
     struct domain *d = v->domain;
@@ -362,6 +392,7 @@ void pmtimer_init(struct vcpu *v)
     {
         d->arch.hvm.params[HVM_PARAM_ACPI_IOPORTS_LOCATION] = 1;
         register_portio_handler(d, PM1a_STS_ADDR_V1, 4, handle_evt_io);
+        register_portio_handler(d, P_LVL2, 1, enter_c2);
     }
 
     /* Set up callback to fire SCIs when the MSB of TMR_VAL changes */
