@@ -716,6 +716,11 @@ int acpi_build_tables(struct acpi_ctxt *ctxt, struct acpi_config *config)
         Fadt.flags |= (ACPI_PWR_BUTTON | ACPI_SLP_BUTTON);
     if ( config->table_flags & ACPI_NO_GPE0 )
         Fadt.gpe0_blk = Fadt.gpe0_blk_len = 0;
+    if ( config->table_flags & ACPI_HAS_C2_STATE )
+    {
+        Fadt.p_lvl2_lat = 50;
+        Fadt.flags |= ACPI_P_LVL2_UP;
+    }
     memcpy(fadt, &Fadt, fadt_size);
     /*
      * For both ACPI 4 and 5 the revision of the FADT matches the ACPI

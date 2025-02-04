@@ -31,6 +31,7 @@
 #define ACPI_HAS_VPCI_ROOT         (1<<17)
 #define ACPI_HAS_VIRTIO_PCI_ROOT   (1<<18)
 #define ACPI_NO_GPE0               (1<<19)
+#define ACPI_HAS_C2_STATE          (1<<20)
 
 struct xen_vmemrange;
 struct acpi_numa {
