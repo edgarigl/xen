@@ -17,6 +17,7 @@ DSDT_FILES ?= $(C_SRC-y)
 C_SRC = $(addprefix $(ACPI_BUILD_DIR)/, $(DSDT_FILES))
 H_SRC = $(addprefix $(ACPI_BUILD_DIR)/, ssdt_s3.h ssdt_s4.h ssdt_pm.h)
 H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, ssdt_tpm.h ssdt_tpm2.h ssdt_laptop_slate.h)
+H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, ssdt_pvh_vpci.h ssdt_pvh_virtio_pci.h)
 
 MKDSDT_CFLAGS-$(CONFIG_ARM_64) = -DCONFIG_ARM_64
 MKDSDT_CFLAGS-$(CONFIG_X86) = -DCONFIG_X86
@@ -58,6 +59,14 @@ $(ACPI_BUILD_DIR)/dsdt_pvh.asl: dsdt_acpi_info.asl $(MK_DSDT)
 	printf "DefinitionBlock (\"DSDT.aml\", \"DSDT\", 5, \"Xen\", \"HVM\", 0)\n{" > $@
 	cat dsdt_acpi_info.asl >> $@
 	$(MK_DSDT) --debug=$(debug) --maxcpu any --dm-version none >> $@
+
+ssdt_pvh_vpci.asl: $(MK_DSDT)
+	printf "DefinitionBlock (\"SSDT_vpci.aml\", \"SSDT\", 2, \"Xen\", \"HVM\", 0)\n{\n" > $@
+	$(MK_DSDT) --vpci y --dm-version none >> $@
+
+ssdt_pvh_virtio_pci.asl: $(MK_DSDT)
+	printf "DefinitionBlock (\"SSDT_virtio_pci.aml\", \"SSDT\", 2, \"Xen\", \"HVM\", 0)\n{\n" > $@
+	$(MK_DSDT) --virtio-pci y --dm-version none >> $@
 
 $(ACPI_BUILD_DIR)/dsdt_anycpu_arm.asl: $(MK_DSDT)
 	printf "DefinitionBlock (\"DSDT.aml\", \"DSDT\", 3, \"Xen\", \"ARM\", 1)\n{" > $@.$(TMP_SUFFIX)
