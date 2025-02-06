@@ -17,7 +17,7 @@ DSDT_FILES ?= $(C_SRC-y)
 C_SRC = $(addprefix $(ACPI_BUILD_DIR)/, $(DSDT_FILES))
 H_SRC = $(addprefix $(ACPI_BUILD_DIR)/, ssdt_s3.h ssdt_s4.h ssdt_pm.h)
 H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, ssdt_tpm.h ssdt_tpm2.h ssdt_laptop_slate.h)
-H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, ssdt_pvh_vpci.h ssdt_pvh_virtio_pci.h)
+#H_SRC += $(addprefix $(ACPI_BUILD_DIR)/, ssdt_pvh_vpci.h ssdt_pvh_virtio_pci.h)
 
 MKDSDT_CFLAGS-$(CONFIG_ARM_64) = -DCONFIG_ARM_64
 MKDSDT_CFLAGS-$(CONFIG_X86) = -DCONFIG_X86
