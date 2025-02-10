@@ -1814,19 +1814,19 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     switch (b_info->type) {
     case LIBXL_DOMAIN_TYPE_PVH:
     {
+        machinearg = libxl__strdup(gc, "xenpvh");
+
+        machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64
+                               ",ram-low-size=%"PRIu64
+                               ",ram-high-base=%"PRIu64
+                               ",ram-high-size=%"PRIu64,
+                               machinearg,
+                               b_info->u.pvh.lowmem_base,
+                               b_info->u.pvh.lowmem_size,
+                               b_info->u.pvh.highmem_base,
+                               b_info->u.pvh.highmem_size);
+
         if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
-            machinearg = libxl__strdup(gc, "xenpvh");
-
-            machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64
-                                   ",ram-low-size=%"PRIu64
-                                   ",ram-high-base=%"PRIu64
-                                   ",ram-high-size=%"PRIu64,
-                                   machinearg,
-                                   b_info->u.pvh.lowmem_base,
-                                   b_info->u.pvh.lowmem_size,
-                                   b_info->u.pvh.highmem_base,
-                                   b_info->u.pvh.highmem_size);
-
             machinearg = GCSPRINTF("%s,pci-ecam-base=%llu,"
                                    "pci-ecam-size=%lu,"
                                    "pci-mmio-base=%lu,"
