@@ -1345,8 +1345,7 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     }
 
     if (b_info->type == LIBXL_DOMAIN_TYPE_HVM ||
-        (b_info->type == LIBXL_DOMAIN_TYPE_PVH &&
-         libxl_defbool_val(b_info->u.pvh.virtio_pci))) {
+        b_info->type == LIBXL_DOMAIN_TYPE_PVH) {
         int ioemu_nics = 0;
 
         for (i = 0; i < num_nics; i++) {
@@ -1813,7 +1812,6 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     flexarray_append(dm_args, "-machine");
     switch (b_info->type) {
     case LIBXL_DOMAIN_TYPE_PVH:
-    {
         machinearg = libxl__strdup(gc, "xenpvh");
 
         machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64
@@ -1840,11 +1838,10 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
                                    PCIE_VIRTIO_64BIT_MMIO_BASE,
                                    PCIE_VIRTIO_64BIT_MMIO_SIZE,
                                    PCIE_VIRTIO_INTX_BASE);
-
-            flexarray_append(dm_args, machinearg);
-            break;
         }
-    }
+
+        flexarray_append(dm_args, machinearg);
+        break;
     case LIBXL_DOMAIN_TYPE_PV:
         flexarray_append(dm_args, "xenpv");
         for (i = 0; b_info->extra_pv && b_info->extra_pv[i] != NULL; i++)
