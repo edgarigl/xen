@@ -1814,30 +1814,34 @@ static int libxl__build_device_model_args_new(libxl__gc *gc,
     case LIBXL_DOMAIN_TYPE_PVH:
         machinearg = libxl__strdup(gc, "xenpvh");
 
-        machinearg = GCSPRINTF("%s,ram-low-base=%"PRIu64
-                               ",ram-low-size=%"PRIu64
-                               ",ram-high-base=%"PRIu64
-                               ",ram-high-size=%"PRIu64,
-                               machinearg,
-                               b_info->u.pvh.lowmem_base,
-                               b_info->u.pvh.lowmem_size,
-                               b_info->u.pvh.highmem_base,
-                               b_info->u.pvh.highmem_size);
+        if (b_info->u.pvh.lowmem_size) {
+            machinearg = GCSPRINTF("%s,ram-low-base=0x%"PRIx64","
+                                   "ram-low-size=0x%"PRIx64","
+                                   "ram-high-base=0x%"PRIx64","
+                                   "ram-high-size=0x%"PRIx64,
+                                   machinearg,
+                                   b_info->u.pvh.lowmem_base,
+                                   b_info->u.pvh.lowmem_size,
+                                   b_info->u.pvh.highmem_base,
+                                   b_info->u.pvh.highmem_size);
+        }
 
         if (libxl_defbool_val(b_info->u.pvh.virtio_pci)) {
-            machinearg = GCSPRINTF("%s,pci-ecam-base=%llu,"
-                                   "pci-ecam-size=%lu,"
-                                   "pci-mmio-base=%lu,"
-                                   "pci-mmio-size=%lu,"
-                                   "pci-mmio-high-base=%llu,"
-                                   "pci-mmio-high-size=%llu,"
-                                   "pci-intx-irq-base=%u",
+            machinearg = GCSPRINTF("%s,pci-ecam-base=0x%"PRIx64","
+                                   "pci-ecam-size=0x%"PRIx64","
+                                   "pci-mmio-base=0x%"PRIx64","
+                                   "pci-mmio-size=0x%"PRIx64","
+                                   "pci-mmio-high-base=0x%"PRIx64","
+                                   "pci-mmio-high-size=0x%"PRIx64","
+                                   "pci-intx-irq-base=%"PRIu32,
                                    machinearg,
-                                   PCIE_VIRTIO_ECAM_BASE, PCIE_VIRTIO_ECAM_SIZE,
-                                   PCIE_VIRTIO_MMIO_BASE, PCIE_VIRTIO_MMIO_SIZE,
-                                   PCIE_VIRTIO_64BIT_MMIO_BASE,
-                                   PCIE_VIRTIO_64BIT_MMIO_SIZE,
-                                   PCIE_VIRTIO_INTX_BASE);
+                                   b_info->u.pvh.pci_ecam_base,
+                                   b_info->u.pvh.pci_ecam_size,
+                                   b_info->u.pvh.pci_mmio_base,
+                                   b_info->u.pvh.pci_mmio_size,
+                                   b_info->u.pvh.pci_mmio64_base,
+                                   b_info->u.pvh.pci_mmio64_size,
+                                   b_info->u.pvh.pci_intx_base);
         }
 
         flexarray_append(dm_args, machinearg);

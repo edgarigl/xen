@@ -771,8 +771,17 @@ static int domain_construct_memmap(libxl__gc *gc,
 
     if (d_config->b_info.type == LIBXL_DOMAIN_TYPE_PVH) {
         if (libxl_defbool_val(d_config->b_info.u.pvh.virtio_pci)) {
-            e820[nr].addr = PCIE_VIRTIO_ECAM_BASE;
-            e820[nr].size = PCIE_VIRTIO_ECAM_SIZE;
+            libxl_domain_build_info *const info = &d_config->b_info;
+
+            info->u.pvh.pci_ecam_base = PCIE_VIRTIO_ECAM_BASE;
+            info->u.pvh.pci_ecam_size = PCIE_VIRTIO_ECAM_SIZE;
+            info->u.pvh.pci_mmio_base = PCIE_VIRTIO_MMIO_BASE;
+            info->u.pvh.pci_mmio_size = PCIE_VIRTIO_MMIO_SIZE;
+            info->u.pvh.pci_mmio64_base = PCIE_VIRTIO_64BIT_MMIO_BASE;
+            info->u.pvh.pci_mmio64_size = PCIE_VIRTIO_64BIT_MMIO_SIZE;
+            info->u.pvh.pci_intx_base = PCIE_VIRTIO_INTX_BASE;
+            e820[nr].addr = info->u.pvh.pci_ecam_base;
+            e820[nr].size = info->u.pvh.pci_ecam_size;
             e820[nr].type = E820_RESERVED;
             nr++;
         }
